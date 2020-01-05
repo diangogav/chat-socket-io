@@ -1,4 +1,5 @@
 const socket = io("http://localhost:9000");
+const adminSocket = io("http://localhost:9000/admin");
 
 socket.on("msgFromServer", msg => {
     console.log(msg);
@@ -15,4 +16,9 @@ document.querySelector("#message-form").addEventListener("submit", event => {
 
 socket.on("messageToClients", msg => {
     document.querySelector("#messages").innerHTML += `<li> ${msg.text} </li>`;
+});
+
+
+adminSocket.on("welcome", msg => {
+    console.log(msg);
 });
