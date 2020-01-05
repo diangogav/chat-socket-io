@@ -1,0 +1,10 @@
+<script src="socket-io.js"></script>
+<script>
+    let socket = io("http://localhost:8000");
+
+    socket.on("connect", data => {
+        socket.on("welcome", msg => console.log(msg));
+        socket.emit("message", {data: "Hello from client side!"});
+    });
+    
+</script>
