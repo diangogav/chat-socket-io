@@ -14,4 +14,6 @@ socket.on("nsList", namespaces => {
             console.log(`${nsEndpoint} i should go to now`);
         });
     });
+
+    joinNs("/wiki");
 });
