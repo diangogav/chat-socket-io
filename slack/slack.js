@@ -14,6 +14,18 @@ namespaces.forEach(namespace => {
         console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
         nsSocket.emit("nsRoomLoad", namespaces[0].rooms);
 
+
+        nsSocket.on("joinToRoom", (roomName, numberOfClientsCallback) => {
+            nsSocket.join(roomName);
+            io.of("/wiki").in(roomName).clients((err, clients) => {
+                numberOfClientsCallback(clients.length);
+            });
+
+            const nsRoom = namespaces[0].rooms.find(room => room.roomTitle === roomName);
+            const oldMessages = nsRoom.history;
+            nsSocket.emit("history", oldMessages);
+        });
+
         nsSocket.on("newMessageToServer", msg => {
             const fullMsg = {
                 avatar : "https://via.placeholder.com/30",
@@ -25,15 +37,11 @@ namespaces.forEach(namespace => {
             const rooms = nsSocket.rooms;
             const roomTitle = Object.keys(rooms)[1];
 
+            const nsRoom = namespace.rooms.find(room => room.roomTitle === roomTitle);
+            nsRoom.addMessage(fullMsg);
             io.of("/wiki").to(roomTitle).emit("messageToClients", fullMsg);
         });
 
-        nsSocket.on("joinToRoom", (roomName, numberOfClientsCallback) => {
-            nsSocket.join(roomName);
-            io.of("/wiki").in(roomName).clients((err, clients) => {
-                numberOfClientsCallback(clients.length);
-            });
-        });
     });
 });
 
