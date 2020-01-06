@@ -13,6 +13,17 @@ namespaces.forEach(namespace => {
     io.of(namespace.endpoint).on("connection", nsSocket => {
         console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
         nsSocket.emit("nsRoomLoad", namespaces[0].rooms);
+
+        nsSocket.on("newMessageToServer", msg => {
+            io.ofz.emit("messageToClients", msg.text);
+        });
+
+        nsSocket.on("joinToRoom", (roomName, numberOfClientsCallback) => {
+            nsSocket.join(roomName);
+            io.of("/wiki").in(roomName).clients((err, clients) => {
+                numberOfClientsCallback(clients.length);
+            });
+        });
     });
 });
 
