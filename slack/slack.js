@@ -17,13 +17,18 @@ namespaces.forEach(namespace => {
 
         nsSocket.on("joinToRoom", (roomName, numberOfClientsCallback) => {
             nsSocket.join(roomName);
-            io.of("/wiki").in(roomName).clients((err, clients) => {
-                numberOfClientsCallback(clients.length);
-            });
+            
+            // io.of("/wiki").in(roomName).clients((err, clients) => {
+            //     numberOfClientsCallback(clients.length);
+            // });
 
             const nsRoom = namespaces[0].rooms.find(room => room.roomTitle === roomName);
             const oldMessages = nsRoom.history;
             nsSocket.emit("history", oldMessages);
+
+            io.of("/wiki").in(roomName).clients((err, clients) => {
+                io.of("/wiki").in(roomName).emit("updateMembers", clients.length);
+            });
         });
 
         nsSocket.on("newMessageToServer", msg => {
