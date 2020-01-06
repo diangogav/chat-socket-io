@@ -15,7 +15,17 @@ namespaces.forEach(namespace => {
         nsSocket.emit("nsRoomLoad", namespaces[0].rooms);
 
         nsSocket.on("newMessageToServer", msg => {
-            io.ofz.emit("messageToClients", msg.text);
+            const fullMsg = {
+                avatar : "https://via.placeholder.com/30",
+                text : msg.text,
+                date : Date.now(),
+                username : "DiangoGav"
+            }
+
+            const rooms = nsSocket.rooms;
+            const roomTitle = Object.keys(rooms)[1];
+
+            io.of("/wiki").to(roomTitle).emit("messageToClients", fullMsg);
         });
 
         nsSocket.on("joinToRoom", (roomName, numberOfClientsCallback) => {
