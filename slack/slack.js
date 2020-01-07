@@ -11,24 +11,27 @@ const io = socketio(expressServer);
 
 namespaces.forEach(namespace => {
     io.of(namespace.endpoint).on("connection", nsSocket => {
+        const username = nsSocket.handshake.query.username;
         console.log(`${nsSocket.id} has join ${namespace.endpoint}`);
-        nsSocket.emit("nsRoomLoad", namespaces[0].rooms);
+        nsSocket.emit("nsRoomLoad", namespace.rooms);
 
 
-        nsSocket.on("joinToRoom", (roomName, numberOfClientsCallback) => {
-            nsSocket.join(roomName);
+        nsSocket.on("joinToRoom", (roomToJoin, numberOfClientsCallback) => {
+
+            const roomToLeave = Object.keys(nsSocket.rooms)[1];
             
-            // io.of("/wiki").in(roomName).clients((err, clients) => {
+            nsSocket.leave(roomToLeave);
+            updateUsersInRoom(namespace, roomToLeave);
+            nsSocket.join(roomToJoin);
+            
+            // io.of(namespace.endpoint).in(roomToJoin).clients((err, clients) => {
             //     numberOfClientsCallback(clients.length);
             // });
 
-            const nsRoom = namespaces[0].rooms.find(room => room.roomTitle === roomName);
+            const nsRoom = namespace.rooms.find(room => room.roomTitle === roomToJoin);
             const oldMessages = nsRoom.history;
             nsSocket.emit("history", oldMessages);
-
-            io.of("/wiki").in(roomName).clients((err, clients) => {
-                io.of("/wiki").in(roomName).emit("updateMembers", clients.length);
-            });
+            updateUsersInRoom(namespace, roomToJoin);
         });
 
         nsSocket.on("newMessageToServer", msg => {
@@ -36,7 +39,7 @@ namespaces.forEach(namespace => {
                 avatar : "https://via.placeholder.com/30",
                 text : msg.text,
                 date : Date.now(),
-                username : "DiangoGav"
+                username
             }
 
             const rooms = nsSocket.rooms;
@@ -44,7 +47,7 @@ namespaces.forEach(namespace => {
 
             const nsRoom = namespace.rooms.find(room => room.roomTitle === roomTitle);
             nsRoom.addMessage(fullMsg);
-            io.of("/wiki").to(roomTitle).emit("messageToClients", fullMsg);
+            io.of(namespace.endpoint).to(roomTitle).emit("messageToClients", fullMsg);
         });
 
     });
@@ -59,3 +62,9 @@ io.on("connection", (socket) => {
     });
     socket.emit("nsList", nsList);
 });
+
+function updateUsersInRoom(namespace, roomToJoin){
+    io.of(namespace.endpoint).in(roomToJoin).clients((err, clients) => {
+        io.of(namespace.endpoint).in(roomToJoin).emit("updateMembers", clients.length);
+    });
+}

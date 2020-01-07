@@ -1,4 +1,10 @@
-const socket = io("http://localhost:9000");
+// const socket = io("http://localhost:9000");
+const username = prompt("What is your username?");
+const socket = io("http://localhost:9000", {
+    query : {
+        username
+    }
+});
 let nsSocket = null;
 
 socket.on("nsList", namespaces => {
@@ -11,7 +17,7 @@ socket.on("nsList", namespaces => {
     Array.from(document.getElementsByClassName("namespace")).forEach(elem => {
         elem.addEventListener("click", e => {
             const nsEndpoint = elem.getAttribute("ns");
-            console.log(`${nsEndpoint} i should go to now`);
+            joinNs(nsEndpoint);
         });
     });
 
